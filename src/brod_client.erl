@@ -284,7 +284,7 @@ get_connection(Client, Host, Port) ->
 init({BootstrapEndpoints, ClientId, Config}) ->
   erlang:process_flag(trap_exit, true),
   Tab = ets:new(?ETS(ClientId),
-                [named_table, protected, {read_concurrency, true}]),
+                [named_table, public, {read_concurrency, true}]),
   self() ! init,
   {ok, #state{ client_id           = ClientId
              , bootstrap_endpoints = BootstrapEndpoints

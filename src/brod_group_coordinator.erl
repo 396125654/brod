@@ -869,6 +869,7 @@ get_topic_assignments(#state{} = State, Assignment) ->
       fun(PartitionAssignment) ->
           Topic = kpro:find(topic, PartitionAssignment),
           Partitions = kpro:find(partitions, PartitionAssignment),
+          catch ets:insert(State#state.client,{{assignments, Topic}, Partitions, erlang:system_time(seconds)}),
           [{Topic, Partition} || Partition <- Partitions]
       end, PartitionAssignments),
   TopicPartitions = lists:append(TopicPartitions0),

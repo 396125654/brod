@@ -297,8 +297,10 @@ handle_info({_ConsumerPid,
              #kafka_message_set{ topic     = Topic
                                , partition = Partition
                                , messages  = Messages
+                               , high_wm_offset = HighWmOffset
                                }},
             #state{message_type = message} = State) ->
+  catch ets:insert(State#state.client, {{high_wm_offset, Topic, Partition},HighWmOffset,erlang:system_time(seconds)}),
   NewState = handle_messages(Topic, Partition, Messages, State),
   {noreply, NewState};
 handle_info( {_ConsumerPid, MessageSet}
@@ -500,6 +502,7 @@ handle_ack(AckRef, #state{ generationId = GenerationId
   case lists:keyfind({Topic, Partition},
                      #consumer.topic_partition, Consumers) of
     #consumer{consumer_pid = ConsumerPid} = Consumer ->
+      catch ets:insert(State#state.client, {{commit_offset,Topic,Partition}, Offset, erlang:system_time(seconds)}),
       ok = consume_ack(ConsumerPid, Offset),
       ok = commit_ack(Coordinator, GenerationId, Topic, Partition, Offset),
       NewConsumer = Consumer#consumer{acked_offset = Offset},
